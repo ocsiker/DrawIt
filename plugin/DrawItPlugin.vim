@@ -35,6 +35,10 @@ let g:loaded_DrawItPlugin = "v13"
 let s:keepcpo             = &cpo
 set cpo&vim
 
+" NOTE: This variable can be used to show on statuslines the current
+" state of drawit (ON or OFF)
+let g:DrawItState = ''
+
 " ---------------------------------------------------------------------
 " Public Interface: {{{1
 " commands:

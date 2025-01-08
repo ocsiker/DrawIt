@@ -104,12 +104,16 @@ fun! DrawIt#DrawItStart(...)
 
   " indicate in DrawIt mode
   echo "[DrawIt]"
+  let g:DrawItState = 'DRAW: [ON]'
 
   " DrawItStart: turn on mouse {{{3
   if !exists("b:drawit_keep_mouse")
    let b:drawit_keep_mouse= &mouse
   endif
   setl mouse=a
+
+  setl virtualedit+=all
+  setl tw=0
 
   " DrawItStart: set up DrawIt commands {{{3
   com! -nargs=1 -range SetBrush <line1>,<line2>call DrawIt#SetBrush(<q-args>)
@@ -260,7 +264,10 @@ fun! DrawIt#DrawItStart(...)
   call SaveUserMaps("bn","","<right>","DrawIt")
   call SaveUserMaps("bn","","<up>","DrawIt")
   call SaveUserMaps("bn","","<down>","DrawIt")
-  call SaveUserMaps("bn","","<left>","DrawIt")
+  call SaveUserMaps("bn","","H","DrawIt")
+  call SaveUserMaps("bn","","L","DrawIt")
+  call SaveUserMaps("bn","","K","DrawIt")
+  call SaveUserMaps("bn","","J","DrawIt")
   call SaveUserMaps("bn","","<s-right>","DrawIt")
   call SaveUserMaps("bn","","<s-up>","DrawIt")
   call SaveUserMaps("bn","","<s-down>","DrawIt")
@@ -358,6 +365,10 @@ fun! DrawIt#DrawItStart(...)
   nmap <silent> <buffer> <script> <right>		:set lz<CR>:silent! call <SID>DrawRight()<CR>:set nolz<CR>
   nmap <silent> <buffer> <script> <up>			:set lz<CR>:silent! call <SID>DrawUp()<CR>:set nolz<CR>
   nmap <silent> <buffer> <script> <down>		:set lz<CR>:silent! call <SID>DrawDown()<CR>:set nolz<CR>
+  nmap <silent> <buffer> <script> H		:set lz<CR>:silent! call <SID>DrawLeft()<CR>:set nolz<CR>
+  nmap <silent> <buffer> <script> L		:set lz<CR>:silent! call <SID>DrawRight()<CR>:set nolz<CR>
+  nmap <silent> <buffer> <script> K			:set lz<CR>:silent! call <SID>DrawUp()<CR>:set nolz<CR>
+  nmap <silent> <buffer> <script> J		:set lz<CR>:silent! call <SID>DrawDown()<CR>:set nolz<CR>
   nmap <silent> <buffer> <script> <s-left>		:set lz<CR>:silent! call <SID>MoveLeft()<CR>:set nolz<CR>
   nmap <silent> <buffer> <script> <s-right>		:set lz<CR>:silent! call <SID>MoveRight()<CR>:set nolz<CR>
   nmap <silent> <buffer> <script> <s-up>		:set lz<CR>:silent! call <SID>MoveUp()<CR>:set nolz<CR>
@@ -367,10 +378,10 @@ fun! DrawIt#DrawItStart(...)
   nmap <silent> <buffer> <script> <				:set lz<CR>:silent! call <SID>DrawSpace('<',2)<CR>:set nolz<CR>
   nmap <silent> <buffer> <script> ^				:set lz<CR>:silent! call <SID>DrawSpace('^',3)<CR>:set nolz<CR>
   nmap <silent> <buffer> <script> v				:set lz<CR>:silent! call <SID>DrawSpace('v',4)<CR>:set nolz<CR>
-  nmap <silent> <buffer> <script> <home>		:set lz<CR>:silent! call <SID>DrawSlantUpLeft()<CR>:set nolz<CR>
-  nmap <silent> <buffer> <script> <end>			:set lz<CR>:silent! call <SID>DrawSlantDownLeft()<CR>:set nolz<CR>
-  nmap <silent> <buffer> <script> <pageup>		:set lz<CR>:silent! call <SID>DrawSlantUpRight()<CR>:set nolz<CR>
-  nmap <silent> <buffer> <script> <pagedown>	:set lz<CR>:silent! call <SID>DrawSlantDownRight()<CR>:set nolz<CR>
+  nmap <silent> <buffer> <script> Q :set lz<CR>:silent! call <SID>DrawSlantUpLeft()<CR>:set nolz<CR>
+  nmap <silent> <buffer> <script> A			:set lz<CR>:silent! call <SID>DrawSlantDownLeft()<CR>:set nolz<CR>
+  nmap <silent> <buffer> <script> E		:set lz<CR>:silent! call <SID>DrawSlantUpRight()<CR>:set nolz<CR>
+  nmap <silent> <buffer> <script> D :set lz<CR>:silent! call <SID>DrawSlantDownRight()<CR>:set nolz<CR>
   nmap <silent> <buffer> <script> <Leader>>		:set lz<CR>:silent! call <SID>DrawFatRArrow()<CR>:set nolz<CR>
   nmap <silent> <buffer> <script> <Leader><		:set lz<CR>:silent! call <SID>DrawFatLArrow()<CR>:set nolz<CR>
   nmap <silent> <buffer> <script> <Leader>^		:set lz<CR>:silent! call <SID>DrawFatUArrow()<CR>:set nolz<CR>
@@ -396,7 +407,7 @@ fun! DrawIt#DrawItStart(...)
   " DrawItStart: set up drawing mode mappings (Sylvain Viart) {{{3
   nnoremap <silent> <buffer> <script> <c-v>      :call <SID>LeftStart()<CR><c-v>
   vmap     <silent> <buffer> <script> <Leader>a  :<c-u>call <SID>CallBox('Arrow')<CR>
-  vmap     <silent> <buffer> <script> <Leader>b  :<c-u>call <SID>CallBox('DrawBox')<cr>
+  vmap     <silent> <buffer> <script> <Leader>B  :<c-u>call <SID>CallBox('DrawBox')<cr>
   nmap              <buffer> <script> <Leader>c  :call <SID>Canvas()<cr>
   vmap     <silent> <buffer> <script> <Leader>l  :<c-u>call <SID>CallBox('DrawPlainLine')<CR>
   vmap     <silent> <buffer> <script> <Leader>s  :<c-u>call <SID>Spacer(line("'<"), line("'>"),0)<cr>
@@ -461,6 +472,7 @@ fun! DrawIt#DrawItStop()
   endif
   unlet b:dodrawit
   echo "[DrawIt off]"
+  let g:DrawItState = ''
 
   if exists("b:drawit_canvas_used")
    " DrawItStop: clean up trailing white space {{{3
@@ -469,6 +481,11 @@ fun! DrawIt#DrawItStop()
    unlet b:drawit_canvas_used
    call s:RestorePosn()
   endif
+
+  setl virtualedit-=all
+  " TODO: Manage to return the `tw` variable to the previous user set
+  " value
+  setl tw=72
 
   " DrawItStop: remove drawit commands {{{3
   delc SetBrush
