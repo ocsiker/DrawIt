@@ -1,3 +1,6 @@
+'''lua
+{return 'ocsiker/DrawIt', cmd="DrawIt"}
+'''
 This is a mirror of http://www.vim.org/scripts/script.php?script_id=40
 
 DrawIt is a plugin which allows one to draw lines left, right, up, down, and along both slants. Optionally one may "cap" the lines with arrowheads.  One may change the horizontal, vertical, slant, and crossing characters to whichever characters one wishes.
